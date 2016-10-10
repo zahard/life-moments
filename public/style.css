@@ -39,8 +39,10 @@ img {
 	margin-bottom: 10px;
 }
 
-.row.month{
-	margin-top: 10px;
+.row.month i{
+	font-style: italic;
+	font-weight: normal;
+
 }
 .row.month{
 	margin-top: 30px;

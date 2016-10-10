@@ -1,17 +1,17 @@
 
 class PhotoGallery
 {
-	constructor(wrap, width)
+	constructor(wrap, config)
 	{
 		this.wrap = wrap;
 		this._loader = wrap.parent().find('.loader');
 
-		this.offset = 0;
-		this.limit = 30;
-		this.height = 250;
-		this.margin = 10;
 
-		this.wrapWidth = width;
+		this.offset = config.offset;
+		this.limit = config.limit;
+		this.height = config.height;
+		this.margin = config.margin;
+		this.wrapWidth = config.width;
 
 		this.rows = [];
 
@@ -122,13 +122,18 @@ class PhotoGallery
 		}.bind(this))
 	}
 
-	loadPhotos()
+	init()
 	{
 		this.countMonthes(function(){
-			$.get('/photos?offset='+this.offset+'&limit='+this.limit, function(data){
-				this.addPhotos(data);
-			}.bind(this))
+			this.loadPhotos();
 		}.bind(this));
+	}
+
+	loadPhotos()
+	{
+		$.get('/photos?offset='+this.offset+'&limit='+this.limit, function(data){
+			this.addPhotos(data);
+		}.bind(this))
 	}
 
 	loadMore()
@@ -141,7 +146,7 @@ class PhotoGallery
 	createMonthRow(month)
 	{
 		var row = $('<div class="row month"/>');
-		row.text(month.name);
+		row.html(month.name + ' <i>(' +month.count +')</i>');
 		this.wrap.append(row);
 	}
 
@@ -180,7 +185,7 @@ class PhotoGallery
 
 		//Stop index of next month (will be update if we changes month inside this render)
 		var monthLimit = this.loadedMonthlyPhotos + this.month.count;
-
+	
 
 		//Add photo width to total used width
 		//until it rich out limit
@@ -349,6 +354,8 @@ class PhotoGallery
 	setNextMonth()
 	{
 		this.loadedMonthlyPhotos += this.month.count;
+
+		console.log(this.loadedMonthlyPhotos)
 		this._monthIndex++;
 		this.month = this.monthes[this._monthIndex];
 	}
