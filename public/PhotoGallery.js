@@ -7,7 +7,7 @@ class PhotoGallery
 		this._loader = wrap.parent().find('.loader');
 
 		this.offset = 0;
-		this.limit = 50;
+		this.limit = 30;
 		this.height = 250;
 		this.margin = 10;
 
@@ -16,6 +16,9 @@ class PhotoGallery
 		this.rows = [];
 
 		this.attachListeners();
+
+
+		this.totalLoaded = 0;
 	}
 
 	setViewer(viewer)
@@ -109,16 +112,23 @@ class PhotoGallery
 		this.viewPhoto(photo,rowIndex, index);
 	}
 
+	countMonthes(callback)
+	{
+		$.get('/monthes', function(data){
+			
+			this.applyMonthes(data);
+
+			callback();
+		}.bind(this))
+	}
 
 	loadPhotos()
 	{
-		$.get('/photos?offset='+this.offset+'&limit='+this.limit, function(data){
-				
-			setTimeout(function(){
+		this.countMonthes(function(){
+			$.get('/photos?offset='+this.offset+'&limit='+this.limit, function(data){
 				this.addPhotos(data);
-			}.bind(this),1000)
-
-		}.bind(this))
+			}.bind(this))
+		}.bind(this));
 	}
 
 	loadMore()
@@ -128,10 +138,16 @@ class PhotoGallery
 		this.loadPhotos();
 	}
 
+	createMonthRow(month)
+	{
+		var row = $('<div class="row month"/>');
+		row.text(month.name);
+		this.wrap.append(row);
+	}
+
 	addPhotos(photos)
 	{
-
-		this.totalLoaded += photos.length;
+		this._loader.hide();
 
 		var photo;
 		var takenWidth;
@@ -155,9 +171,15 @@ class PhotoGallery
 				this.rows.pop();
 			}
 		}
-		
 
-		this._loader.hide();
+		//Draw month before start
+		if (this.totalLoaded == 0)
+		{
+			this.createMonthRow(this.month);
+		}
+
+		//Stop index of next month (will be update if we changes month inside this render)
+		var monthLimit = this.loadedMonthlyPhotos + this.month.count;
 
 
 		//Add photo width to total used width
@@ -177,6 +199,7 @@ class PhotoGallery
 
 			//Add photo width total width
 			totalWidth += photoWidth;
+
 
 			//Count how many photos we have in sequence
 			count++;
@@ -202,8 +225,29 @@ class PhotoGallery
 			} 
 			else
 			{
-				//Add margin
-				totalWidth += this.margin;
+
+				if (monthLimit == this.totalLoaded + i ) {
+
+					//START NEW MONTH
+					this.createRow(totalWidth, photos.slice(start, i), false);
+					totalWidth = 0;
+					count = 0;
+					start = i;
+
+					//Go to next month
+					this.setNextMonth();
+					monthLimit = this.loadedMonthlyPhotos + this.month.count;
+
+					this.createMonthRow(this.month);
+
+					i--;
+
+
+				} else{
+					//Add margin
+					totalWidth += this.margin;
+				}
+
 			}
 		}
 
@@ -211,12 +255,13 @@ class PhotoGallery
 		if (count > 0) {
 			this.createRow(totalWidth, photos.slice(start, i), false);
 		}
+
+		this.totalLoaded += photos.length;
 	}
 
 
 	createRow(width, photos, isFull)
 	{	
-
 		this.rows.push({
 			photos: photos,
 			isFull: isFull
@@ -282,6 +327,37 @@ class PhotoGallery
 		parent.append(div);
 	}
 
+
+	applyMonthes(monthes)
+	{
+		this.loadedMonthlyPhotos = 0;
+		this.monthes = [];
+
+		monthes.forEach((month) => {
+			var ob = {
+				name: this.monthName(month._id.year,month._id.month),
+				count: month.total
+			};
+			this.monthes.push(ob);
+		
+		});
+
+		this._monthIndex = 0;
+		this.month = this.monthes[0];
+	}
+
+	setNextMonth()
+	{
+		this.loadedMonthlyPhotos += this.month.count;
+		this._monthIndex++;
+		this.month = this.monthes[this._monthIndex];
+	}
+
+	monthName(y,m)
+	{
+		var names = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+		return names[m-1] + ' ' + y;
+	}
 
 	onScroll()
 	{

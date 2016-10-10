@@ -47,6 +47,25 @@ app.get('/photos', function(req, res){
   	
 });
 
+app.get('/monthes', function(req, res){
+
+
+	Photo.aggregate([
+		{ '$group': {_id: {year: {"$year":"$date"}, month:{"$month":"$date"}}, total: { $sum: 1 } } },
+		{'$sort': {"_id.year": -1, "_id.month": -1 } },
+
+		
+	], function(err, result){
+		if(err) console.log(err);
+
+		res.send(result);
+	});
+	
+
+});
+
+
+
 //Statis js css
 app.use(express.static(__dirname + '/public'));
 

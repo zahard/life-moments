@@ -39,6 +39,15 @@ img {
 	margin-bottom: 10px;
 }
 
+.row.month{
+	margin-top: 10px;
+}
+.row.month{
+	margin-top: 30px;
+    font: bold 20px Arial;
+    color: #555;
+}
+
 .img {
 	cursor: pointer;
 	height: 250px;
