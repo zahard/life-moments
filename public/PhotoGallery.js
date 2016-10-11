@@ -355,7 +355,6 @@ class PhotoGallery
 	{
 		this.loadedMonthlyPhotos += this.month.count;
 
-		console.log(this.loadedMonthlyPhotos)
 		this._monthIndex++;
 		this.month = this.monthes[this._monthIndex];
 	}

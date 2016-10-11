@@ -5,7 +5,7 @@ var mongoose = require('libs/connectdb');
  
 	async.series([
 		open,
-		//dropDatabase,
+		dropDatabase,
 	], function(err, results) {
 		if(err) console.log(err)
 

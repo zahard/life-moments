@@ -31,7 +31,7 @@ body,html ,	div,canvas {
 	margin: 0 auto;	
 }
 
-img {
+.img img {
 	height: 100%;
 }
 
@@ -56,6 +56,7 @@ img {
 	float: left;
 	margin-left: 10px;
 }
+
 button {
 	font-style: 20px;
 	width: 200px;
@@ -140,8 +141,25 @@ button {
 }
 
 #photoViewer .container .photo img{
-
+	height: 100%;
 }
+#photoViewer .container .photo .rotate{
+	height: 100%;
+}
+
+#photoViewer .container .photo .rotate-3 img{
+	transform: rotate(180deg);
+}
+
+
+#photoViewer .container .photo .rotate-6 img{
+	transform: rotate(90deg);
+}
+
+#photoViewer .container .photo .rotate-9 img{
+	transform: rotate(-90deg);
+}
+
 
 
 #photoViewer .imageInfo {

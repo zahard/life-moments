@@ -1,11 +1,10 @@
 
 //Settings
 var config = {
-	source: 'e:/node-www/Photos',
-	photoPath: 'e:/node-www/Photos',
+	source: 'e:/media',
+	photoPath: 'e:/media',
 	thumbDir: '__thumb',
 	thumbHeight: 250
 }
-
 
 module.exports = config;

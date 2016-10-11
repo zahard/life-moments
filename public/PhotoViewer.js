@@ -33,19 +33,67 @@ class PhotoViewer
 		var maxContainerHeight = window.innerHeight * 0.75;
 
 		this.photo = photo;
+
 		var url = photo.url;
 		var img = new Image();
-
 		this.blockControl = true;
 		img.onload = function()
 		{
-			this._photo.append(img);
-
 			this.blockControl = false;
+			//FIx orientation
+			if (photo.exif.Orientation == 1 )
+			{
+				this._photo.append(img);
+			}
+			else
+			{
+				var imgDIv = $('<div class="rotate rotate-'+photo.exif.Orientation+'"></div>')
+				imgDIv.append(img);
+
+				if(photo.exif.Orientation != 3){
+					imgDIv.height = img.width;					
+				}
+
+				this._photo.append(imgDIv);
+			}
 
 		}.bind(this);
 		img.src = url;
 
+	}
+
+	getFixedImage(img, orientation)
+	{
+		var cnv = document.createElement('canvas');
+		if(orientation == 3)
+		{
+			cnv.width = img.width;
+			cnv.height = img.height;
+		}else{
+			cnv.width = img.height;
+			cnv.height = img.width;
+		}
+		var ctx = cnv.getContext('2d');
+
+		var degree = 0;
+		if(orientation == 3)
+		{	
+			degree = 180;
+		}else if(orientation == 6)
+		{
+			degree = 90;
+		}else{
+			degree =-90;
+		}
+
+		ctx.translate(cnv.width/2,cnv.height/2);
+		ctx.rotate(degree * Math.PI / 180);
+		ctx.drawImage(img,-img.width/2,-img.height/2);
+		
+
+		var image = new Image();
+		image.src = cnv.toDataURL();
+		return image;
 	}
 
 	show()

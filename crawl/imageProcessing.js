@@ -7,11 +7,86 @@ module.exports = function(mongoose)
 	var easyimg = require('easyimage');
 	var config = require('libs/config');
 	var errors = require('libs/errors');
+	var isodate = require('isodate');
+
+	var ExifImage = require('exif').ExifImage;
 
 	var ImageExistsError = errors.ImageExistsError;
 
 	var Photo = mongoose.models.Photo;
 	//path.resolve(dir, fileName);
+
+	function cleanNulls(str){
+		var index = str.indexOf('\0');
+		if (index != -1)
+		{
+			return str.substr(0, index);
+		}
+		return str;
+	}
+
+	function buildExif(exif)
+	{
+		var exifDataDefault = {
+			Make: 'Unknow',
+			Model: 'Unknow',
+			Orientation: 1,
+			DateTimeOriginal: null,
+			Flash: 0,
+			FNumber: 0,
+			ExposureProgram: 0,
+			ExposureTime: 0,
+			FocalLength: 0,
+			ExposureMode: 0,
+			gps: {},
+			ISO: 0,
+			ExifImageHeight: 0,
+			ExifImageWidth: 0
+		};
+
+		if(!exif) {
+			return exifDataDefault;
+		}
+
+		var date = exif.exif.DateTimeOriginal;
+		var iso = date.substr(0,10).replace(':','-').replace(':','-') +'T'+ date.substr(11) + 'Z';
+
+		var dateObj;
+		try{
+			dateObj = isodate(iso);
+		}catch(e){
+			dateObj = null;
+		}
+
+		var exifDataSorted = {
+			Make: cleanNulls(exif.image.Make),
+			Model: cleanNulls(exif.image.Model),
+			Orientation: exif.image.Orientation,
+			DateTimeOriginal: dateObj,
+			Flash: exif.exif.Flash,
+			FNumber: exif.exif.FNumber,
+			ExposureProgram: exif.exif.ExposureProgram,
+			ExposureTime: exif.exif.ExposureTime,
+			FocalLength: exif.exif.FocalLength,
+			ExposureMode: exif.exif.ExposureMode,
+			gps: exif.gps,
+			ISO: exif.exif.ISO,
+			ExifImageHeight: exif.exif.ExifImageHeight,
+			ExifImageWidth: exif.exif.ExifImageWidth
+		};
+
+		return exifDataSorted;
+	}
+
+	var counter = 0;
+	function saved(){
+		counter++;
+		if(counter%50==0)
+		{
+			console.log(counter + ' processed');
+		}
+	}
+
 
 	function processFile(filename, stat, done)
 	{
@@ -90,11 +165,22 @@ module.exports = function(mongoose)
 				});
 
 			},
-
-			//Save or update information
+			//Read exif
 			function(info, ratio , callback)
 			{	
-				
+
+				new ExifImage({ image : filename }, function (err, exif) {
+			        
+			        var exifData = buildExif(exif);
+
+			        callback(null, info, ratio, exifData);
+			    });
+			},
+
+			//Save or update information
+			function(info, ratio , exifData, callback)
+			{	
+
 				Photo.findOne({path:filename}, function(err, photo){
 
 					if (err) return callback(err);
@@ -111,18 +197,29 @@ module.exports = function(mongoose)
 
 					if (!photo) {
 						isNew = true;
+
+						//If no exif date about creation
+						//ue file general data
+						if (!exifData.DateTimeOriginal) {
+							exifData.DateTimeOriginal = stat.mtime.getTime();
+						}
+						
+
 						var photo = new Photo({
 							path: filename,
 							thumb: thumbFile,
 							date: stat.mtime.getTime(),
+							createdDate: exifData.DateTimeOriginal,
 							album: albumName,
 							ratio: ratio,
 							width: width,
-							height: height
+							height: height,
+							exif: exifData
 						});
 						photo.save(function(err, photo) {
 							if(err) return callback(err);
 
+							saved();
 							callback(null, photo);
 						});
 					}

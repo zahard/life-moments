@@ -18,7 +18,7 @@ app.get('/photos', function(req, res){
 
 	Photo
 		.find({})
-		.sort({date:-1})
+		.sort({createdDate:-1})
 		.limit(limit)
 		.skip(offset)
 		.lean()
@@ -51,7 +51,7 @@ app.get('/monthes', function(req, res){
 
 
 	Photo.aggregate([
-		{ '$group': {_id: {year: {"$year":"$date"}, month:{"$month":"$date"}}, total: { $sum: 1 } } },
+		{ '$group': {_id: {year: {"$year":"$createdDate"}, month:{"$month":"$createdDate"}}, total: { $sum: 1 } } },
 		{'$sort': {"_id.year": -1, "_id.month": -1 } },
 
 		
