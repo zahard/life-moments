@@ -5,11 +5,12 @@ module.exports = function(mongoose)
 	var fs = require('fs');
 	var path = require('path');
 	var easyimg = require('easyimage');
+	var isodate = require('isodate');
+	var ExifImage = require('exif').ExifImage;
+
 	var config = require('libs/config');
 	var errors = require('libs/errors');
-	var isodate = require('isodate');
 
-	var ExifImage = require('exif').ExifImage;
 
 	var ImageExistsError = errors.ImageExistsError;
 
@@ -44,12 +45,16 @@ module.exports = function(mongoose)
 			ExifImageWidth: 0
 		};
 
-		if(!exif) {
+		if(!exif || !exif.exif.DateTimeOriginal || !exif.image.Make) {
 			return exifDataDefault;
 		}
 
 		var date = exif.exif.DateTimeOriginal;
-		var iso = date.substr(0,10).replace(':','-').replace(':','-') +'T'+ date.substr(11) + 'Z';
+		var iso = '';
+		if(date)
+		{
+			var iso = date.substr(0,10).replace(':','-').replace(':','-') +'T'+ date.substr(11) + 'Z';
+		}
 
 		var dateObj;
 		try{
@@ -78,14 +83,7 @@ module.exports = function(mongoose)
 		return exifDataSorted;
 	}
 
-	var counter = 0;
-	function saved(){
-		counter++;
-		if(counter%50==0)
-		{
-			console.log(counter + ' processed');
-		}
-	}
+	
 
 
 	function processFile(filename, stat, done)
@@ -149,7 +147,7 @@ module.exports = function(mongoose)
 								 width: calculatedWidth
 							  }).then(
 							  function(image) {
-							  	 console.log('Thumbnail created');
+							  	 
 							  	 var thumbRatio = image.width / image.height;
 								 callback(null, info, thumbRatio);
 							  },
@@ -219,7 +217,6 @@ module.exports = function(mongoose)
 						photo.save(function(err, photo) {
 							if(err) return callback(err);
 
-							saved();
 							callback(null, photo);
 						});
 					}

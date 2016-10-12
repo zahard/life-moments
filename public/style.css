@@ -27,7 +27,6 @@ body,html ,	div,canvas {
 
 #photos {
 	overflow: hidden;
-	width:1600px;
 	margin: 0 auto;	
 }
 
@@ -114,7 +113,7 @@ button {
 }
 
 #photoViewer .container {
-	transition: width 0.3s;
+	transition: width 0.200s;
     box-sizing: border-box;
     float: left;
     height: 100%;
@@ -128,13 +127,13 @@ button {
 
 #photoViewer .container .wrapVertical{
 	position: relative;
-	top:50%;
+	/*top:50%;*/
 	height: 100%;
 }
 
 #photoViewer .container .photo{
-	position: absolute;
-	top:-50%;
+	/*position: absolute;*/
+	/*top:-50%;*/
 	height: 100%;
 	width: 100%;
 	text-align: center;
@@ -142,6 +141,7 @@ button {
 
 #photoViewer .container .photo img{
 	height: 100%;
+	position: relative;
 }
 #photoViewer .container .photo .rotate{
 	height: 100%;
@@ -171,7 +171,7 @@ button {
 	background: #fff;
 	height: 100%;
 	padding-top: 50px;
-	transition: right 0.3s;
+	transition: right 0.200s;
 	right: 0;
 }
 
@@ -192,11 +192,11 @@ button {
 
 #photoViewer .imageInfo dt {
 	font-weight: bold;
-	width: 40%;
+	width: 30%;
 }
 
 #photoViewer .imageInfo dd {
-	width:60%;
+	width:70%;
 }
 
 #photoViewer .arrow {

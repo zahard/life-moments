@@ -1,7 +1,7 @@
+var config = require('libs/config');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/drive');
-
+mongoose.connect(config.mongodb);
 
 mongoose.model('Photo', { 
 	path: String, 

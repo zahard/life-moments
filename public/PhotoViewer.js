@@ -2,12 +2,13 @@
 
 class PhotoViewer
 {	
-	constructor(template)
+	constructor(template, fullWidth)
 	{
 		this._template = template;
 
 		this._container = this._template.find('.container');
 		this._info = this._template.find('.imageInfo');
+		this._properties = this._template.find('.imageInfo .properties');
 		this._photo = this._template.find('.photo');
 
 		this._arrow = {};
@@ -16,7 +17,10 @@ class PhotoViewer
 
 		this.attachListeners();
 
-		this.fullWidth = true;
+		this.fullWidth = fullWidth || false;
+		this.updateInfoBlock();
+
+		this.active = false;
 
 		this._events = {};
 	}
@@ -29,7 +33,9 @@ class PhotoViewer
 		//Show loader
 		//TODO
 
-		var maxContainerWidth = Math.max(1600, window.innerWidth);
+		var defaultWidth = 1400;
+
+		var containerWidth = Math.max(1400, window.innerWidth);
 		var maxContainerHeight = window.innerHeight * 0.75;
 
 		this.photo = photo;
@@ -40,6 +46,9 @@ class PhotoViewer
 		img.onload = function()
 		{
 			this.blockControl = false;
+
+			this.updateImagePosition();
+
 			//FIx orientation
 			if (photo.exif.Orientation == 1 )
 			{
@@ -58,42 +67,78 @@ class PhotoViewer
 			}
 
 		}.bind(this);
+
+		this._image = img;
 		img.src = url;
+
+		this.renderInfo(photo)
 
 	}
 
-	getFixedImage(img, orientation)
+	formatDate (date)
 	{
-		var cnv = document.createElement('canvas');
-		if(orientation == 3)
+		var date = ISODate(date);
+
+		return moment(date).format("DD MMM, YYYY hh:mm")
+	}
+
+	renderInfo (photo)
+	{
+
+		var exif = photo.exif;
+		var props = [
+			{
+				name:'Name', 
+				value: photo.url.split('/').slice(-1)[0] 
+			},{
+				name:'Date',
+				value: this.formatDate(exif.DateTimeOriginal)
+			},{
+				name:'Device',
+				value: exif.Make+' '+exif.Model
+			}
+		];
+
+		this._properties.empty();
+
+		props.forEach((p)=>{
+			this._properties.append('<dt>'+p.name+'</dt>');	
+			this._properties.append('<dd>'+p.value+'</dd>');	
+		})
+	}
+
+
+	updateImagePosition (image)
+	{
+		var contWidth;
+		var img = image || this._image;
+
+		var contWidth = this._template.width();
+		//If not full width , sunstract info block width
+		if (!this.fullWidth)
 		{
-			cnv.width = img.width;
-			cnv.height = img.height;
-		}else{
-			cnv.width = img.height;
-			cnv.height = img.width;
+			var infoBlockWidth = this._info[0].offsetWidth;
+			contWidth -= infoBlockWidth;
 		}
-		var ctx = cnv.getContext('2d');
 
-		var degree = 0;
-		if(orientation == 3)
-		{	
-			degree = 180;
-		}else if(orientation == 6)
+		var contHeight = this._container.height();
+
+		var contRatio = contWidth/contHeight;
+		var imageRatio = img.width/img.height;
+
+		if (imageRatio <= contRatio)
 		{
-			degree = 90;
-		}else{
-			degree =-90;
+			img.style.height = '100%';
+			img.style.width = 'auto';
+			img.style.top = '';
 		}
+		else
+		{
+			img.style.height = 'auto';
+			img.style.width = '100%';
+			img.style.top = ((contHeight - (contWidth/imageRatio) )/2) + 'px';
 
-		ctx.translate(cnv.width/2,cnv.height/2);
-		ctx.rotate(degree * Math.PI / 180);
-		ctx.drawImage(img,-img.width/2,-img.height/2);
-		
-
-		var image = new Image();
-		image.src = cnv.toDataURL();
-		return image;
+		}
 	}
 
 	show()
@@ -102,6 +147,9 @@ class PhotoViewer
 		this._template.on('mousewheel', function(e){
 			return false;
 		});
+
+		this.active = true;
+
 		this.emit('show');
 	}
 
@@ -109,6 +157,9 @@ class PhotoViewer
 	{
 		this._template.hide();
 		this.clear();
+
+		this.active = false;
+
 		this.emit('closed');
 	}
 
@@ -135,17 +186,27 @@ class PhotoViewer
 		}
 	}
 
+	updateInfoBlock()
+	{
+		if (this.fullWidth) {
+			this._template.addClass('collapsed');
+		} else {
+			this._template.removeClass('collapsed');
+		}
+	}
+
 	attachListeners()
 	{	
 		//Show/hide photo information
 		this._template.find('.opener').click(function(e){
-			if (this.fullWidth) {
-				this._template.addClass('collapsed');
-			} else {
-				this._template.removeClass('collapsed');
-			}
-
+			
 			this.fullWidth = !this.fullWidth;
+
+			this.updateInfoBlock()
+
+			setTimeout(()=>{
+				this.updateImagePosition();
+			}, 200);
 
 			e.preventDefault();
 			return false;
@@ -169,6 +230,16 @@ class PhotoViewer
 			
 			this.emit('prev')
 		}.bind(this));
+
+		$(window).on('resize', ()=>{
+			if (!this.active) return;
+
+			if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
+
+			this.resizeTimeout = setTimeout(()=>{
+				this.updateImagePosition();
+			},250);
+		});
 
 
 

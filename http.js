@@ -17,7 +17,9 @@ app.get('/photos', function(req, res){
 	var offset = parseInt(req.query.offset, 10) || 0;
 
 	Photo
-		.find({})
+		.find({
+			//'exif.gps.GPSLatitude': { $exists: true}
+		})
 		.sort({createdDate:-1})
 		.limit(limit)
 		.skip(offset)

@@ -1,12 +1,14 @@
 
 $(document).ready(function()
-{
-	var Viewer =  new PhotoViewer($('#photoViewer'));
+{	
+	moment.locale('en');
+
+	var Viewer =  new PhotoViewer($('#photoViewer'), true);
 
 	var Gallery = new PhotoGallery($('#photos'), {
 		limit: 50,
 		offset: 0,
-		width: 1600,
+		width: 1200,
 		height: 250,
 		margin: 10
 	});

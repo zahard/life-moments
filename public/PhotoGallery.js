@@ -17,6 +17,7 @@ class PhotoGallery
 
 		this.attachListeners();
 
+		this.wrap.width(this.wrapWidth);
 
 		this.totalLoaded = 0;
 	}
@@ -267,6 +268,12 @@ class PhotoGallery
 
 	createRow(width, photos, isFull)
 	{	
+		var len = photos.length;
+		var whiteSpace = (len -1) * this.margin;
+		var rowHeight = this.height;
+
+		if (!len) return;
+
 		this.rows.push({
 			photos: photos,
 			isFull: isFull
@@ -274,10 +281,6 @@ class PhotoGallery
 
 		var row = $('<div class="row"/>');
 		this.wrap.append(row);
-
-		var len = photos.length;
-		var whiteSpace = (len -1) * this.margin;
-		var rowHeight = this.height;
 
 		if (isFull)
 		{

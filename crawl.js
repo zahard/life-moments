@@ -17,7 +17,8 @@ console.log('Start'.green)
 async.series([
 	open,
 	// /dropDatabase,
-	findPhotos,
+	//findPhotos,
+	parseSource,
 	testPhotos
 ], function(err, results) {
 	if(err) console.log(err)
@@ -32,15 +33,73 @@ async.series([
 
 var processFile = require('crawl/imageProcessing')(mongoose);
 
-var filesCount = 0;
-function logFile()
+
+function parseSource(callback)
+{	
+
+	readDir(config.source, function(err){
+		if(err) throw err;
+
+		callback();
+	});
+
+}
+
+function readDir(dir, done)
 {
-	filesCount++;
-	if (filesCount%10 == 0)
-	{
-		var str = filesCount+' file processed';
-		console.log(str.yellow);
-	}
+	console.log('Processing', dir)
+
+	var  files = fs.readdirSync(dir);
+
+	//Run 4 tasks in parallel
+	async.eachOfLimit(files, 4,
+		function(filename, idx, callback) {
+
+			var file = path.resolve(dir, filename);
+
+			fs.stat(file, function(err, stat) {
+				//IF directory
+
+	        	if (stat && stat.isDirectory()) {
+
+	        		//Skip thumb directory
+	        		if (filename == config.thumbDir) {
+	        			callback();
+	        			return;
+	        		}
+
+	        		//Ready child dir, and only after continnue
+	          		readDir(file, function(err){
+	          			if(err) callback(err);
+
+	          			callback(null)
+	          		});
+	        	}
+	        	else
+	        	{
+
+	        		//Test correct file extension
+					if (! /\.jpe?g$/i.test(file)) {
+						callback(null);	
+					}
+					else
+					{
+						//Process file itself
+						processFile(file, stat, function(){
+
+							callback(null);
+		        		});
+					}
+	        	}
+	      })
+		},
+		function(err)
+		{
+			if(err) done(err);
+
+			done();
+		});
+
 }
 
 function testPhotos(callback)
