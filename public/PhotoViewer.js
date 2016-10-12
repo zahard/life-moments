@@ -104,7 +104,36 @@ class PhotoViewer
 		props.forEach((p)=>{
 			this._properties.append('<dt>'+p.name+'</dt>');	
 			this._properties.append('<dd>'+p.value+'</dd>');	
-		})
+		});
+
+		this._properties.append('<div class="clear"</div>');
+
+		if(exif.gps && exif.gps.GPSLatitude)
+		{	
+			var gpsLat = exif.gps.GPSLatitude;
+			var gpsLong = exif.gps.GPSLongitude;
+			var lat = (gpsLat[0] + gpsLat[1]/60 + gpsLat[2]/3600) * (exif.gps.GPSLatitudeRef == 'N'?1:-1);
+			var long = (gpsLong[0] + gpsLong[1]/60 + gpsLong[2]/3600) * (exif.gps.GPSLongitudeRef == 'E'?1:-1);
+
+			
+			var b = document.createElement('a');
+			b.className = 'mapLink'
+			b.innerHTML = 'Open Map'
+			b.href="javascript:void(0)";
+			b.onclick = function(){
+				var img = new Image();
+				img.src = 'http://maps.googleapis.com/maps/api/staticmap?center='+lat+','+long+'&zoom=17&size=400x400&sensor=false'
+				this._properties.append(img);
+				this._properties[0].removeChild(b);
+			}.bind(this);
+			this._properties.append(b);
+
+
+			/*
+			var img = new Image();
+			img.src = 'http://maps.googleapis.com/maps/api/staticmap?center='+lat+','+long+'&zoom=12&size=400x400&sensor=false'
+			this._properties.append(img);*/
+		}
 	}
 
 
