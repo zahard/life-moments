@@ -1,0 +1,33 @@
+{
+  "name": "life-moments",
+  "version": "0.0.6",
+  "description": "Photo viewer",
+  "main": "http",
+  "dependencies": {
+    "mongoose": "^4.6.2",
+    "express": "^3.3.5",
+    "exif": "^0.6.0",
+    "async": "^2.0.1",
+    "easyimage": "^2.1.0",
+    "isodate": "^0.1.4",
+    "mkdirp": "^0.5.1",
+    "yesno": "0.0.1",
+    "colors": "^1.1.2"
+  },
+  "devDependencies": {
+  
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zahard/life-moments.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zahard/life-moments/issues"
+  },
+  "homepage": "https://github.com/zahard/life-moments#readme"
+}
